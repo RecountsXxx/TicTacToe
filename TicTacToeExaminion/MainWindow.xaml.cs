@@ -70,7 +70,6 @@ namespace TicTacToeExaminion
             }
 
         }
-
         private void btnClose_Click(object sender, RoutedEventArgs e)
         {
             Environment.Exit(0);
@@ -333,6 +332,7 @@ namespace TicTacToeExaminion
                 }
             });
         }
+
         private async void SlowOpacityGameGrid()
         {
             await Task.Factory.StartNew(() =>
