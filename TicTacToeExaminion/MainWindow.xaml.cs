@@ -34,6 +34,8 @@ namespace TicTacToeExaminion
         private NetworkStream stream = null;
         private DispatcherTimer timer = new DispatcherTimer();
         private User user = null;
+        private CancellationTokenSource cancelation = null;
+      
 
         private bool yourQueue = true;
         private bool IsSearchingGame = false;
@@ -44,7 +46,7 @@ namespace TicTacToeExaminion
         {
             InitializeComponent();
             this.user = user;
-
+          
             LoadUserInfo();
 
             timer.Interval = TimeSpan.FromMilliseconds(250);
@@ -87,6 +89,17 @@ namespace TicTacToeExaminion
             window.Show();
             this.Close();
         }
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            if (server.Available > 0)
+            {
+                stream = server.GetStream();
+                stream.Write(Encoding.ASCII.GetBytes("Bye"));
+                server.Close();
+            }
+        }
+        #endregion
+
         private void LeaveGame_Click(object sender, MouseButtonEventArgs e)
         {
             labelVsPlayer.Content = "vs Player";
@@ -102,36 +115,33 @@ namespace TicTacToeExaminion
             }
             stream = server.GetStream();
             stream.Write(Encoding.ASCII.GetBytes("Bye"));
-            server.Close();
         }
-        private void Window_Closed(object sender, EventArgs e)
-        {
-            if (server.Available > 0)
-            {
-                stream = server.GetStream();
-                stream.Write(Encoding.ASCII.GetBytes("Bye"));
-                server.Close();
-            }
-        }
-        #endregion
-
         private async void PlayPlayer_Click(object sender, MouseButtonEventArgs e)
         {
+            server = new TcpClient();
+            server.Connect("127.0.0.1", 10002);
+            stream = server.GetStream();
             if (IsSearchingGame == false)
             {
                 IsSearchingGame = true;
                 labelVsPlayer.Content = "Stop";
                 User oponent = null;
-                server = new TcpClient();
-                server.Connect("127.0.0.1", 10002);
-                stream = server.GetStream();
-                stream.Write(Encoding.ASCII.GetBytes("PlayOnline - " + user.Username));
-                await Task.Run(() =>
+
+                cancelation = new CancellationTokenSource();
+                stream.Write(Encoding.ASCII.GetBytes("PlayOnline | " + user.Username));
+                await Task.Run(async () =>
                 {
-                    while (true)
+                    try
                     {
+                        if (cancelation.IsCancellationRequested)
+                        {
+                            return;
+                        }
+
                         byte[] buffer = new byte[18184];
-                        stream.Read(buffer, 0, buffer.Length);
+                        await stream.ReadAsync(buffer, 0, buffer.Length, cancelation.Token);
+                   
+
                         string response = Encoding.ASCII.GetString(buffer);
                         string[] arrResponse = response.Split(" ");
                         if (response.Contains("Oponent finded!"))
@@ -180,8 +190,7 @@ namespace TicTacToeExaminion
                                 userNameGameLabelTwo.Content = oponent.Username;
                                 userNameGameLabel.Content = user.Username;
                             }));
-                            try
-                            {
+ 
                                 Dispatcher.BeginInvoke(new Action(() =>
                                 {
                                     BitmapImage bitmapImage = new BitmapImage();
@@ -198,22 +207,26 @@ namespace TicTacToeExaminion
                                     bitmapImage.EndInit();
                                     AvatarUserGameImageTwo.Source = bitmapImage;
                                 }));
-                            }
-                            catch (Exception ex)
-                            {
-                                MessageBox.Show(ex.Message);
-                            }
                             SlowOpacityMainGrid();
                             timer.Start();
-                            break;
                         }
+
                     }
-                });
+                    catch
+                    {
+                        IsSearchingGame = false;
+                        stream.Write(Encoding.ASCII.GetBytes("Goodbye | " + user.Username));
+                        cancelation.Cancel();
+                    }
+                }, cancelation.Token);
             }
             else
             {
                 IsSearchingGame = false;
                 labelVsPlayer.Content = "vs Player";
+                stream.Write(Encoding.ASCII.GetBytes("Goodbye | " + user.Username));
+                cancelation.Cancel();
+     
             }
         }
         private void PlayPC_Click(object sender, MouseButtonEventArgs e)

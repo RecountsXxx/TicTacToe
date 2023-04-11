@@ -30,9 +30,10 @@ namespace TicTacToeLiblary
             User user = null;
             TcpClient tcpClient = new TcpClient("127.0.0.1", 10001);
             NetworkStream stream = tcpClient.GetStream();
-            BinaryFormatter formatter = new BinaryFormatter();
+            BinaryFormatter formatter = new BinaryFormatter();  
             stream.Write(Encoding.ASCII.GetBytes("Login - " + username + " - Password - " + password));
-            byte[] buffer = new byte[9000];
+            
+            byte[] buffer = new byte[11184];
             stream.Read(buffer, 0, buffer.Length);
 
             using (MemoryStream ms = new MemoryStream(buffer))
@@ -58,7 +59,7 @@ namespace TicTacToeLiblary
             NetworkStream stream = tcpClient.GetStream();
             BinaryFormatter formatter = new BinaryFormatter();
             stream.Write(Encoding.ASCII.GetBytes("Get user - " + username));
-            byte[] buffer = new byte[9000];
+            byte[] buffer = new byte[11184];
             stream.Read(buffer, 0, buffer.Length);
 
 
