@@ -84,6 +84,7 @@ namespace GameServer
             }
 
         }
+
         #region Helpfull func
         public static bool CheckCells(LobbyModel userFirst)
         {
