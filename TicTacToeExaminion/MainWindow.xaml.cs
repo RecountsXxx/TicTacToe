@@ -180,7 +180,7 @@ namespace TicTacToeExaminion
                 string response = Encoding.ASCII.GetString(buffer);
                 if(response.Contains("PC finded!"))
                 {
-                    MessageBox.Show("PC Finded, game starting!", "", MessageBoxButton.OK, MessageBoxImage.Question);
+                    //MessageBox.Show("PC Finded, game starting!", "", MessageBoxButton.OK, MessageBoxImage.Question);
                     SetIcons(response);
                     SetAvatarAndUserNameForGame(user, AvatarUserGameImage, userNameGameLabel);
                     SetAvatarAndUserNameForGame(new User("Bot") { PathAvatar = File.ReadAllBytes(System.IO.Path.GetFullPath("Images/userLogo.png")) }, AvatarUserGameImageTwo, userNameGameLabelTwo);
@@ -197,7 +197,7 @@ namespace TicTacToeExaminion
         #endregion
 
         #region Select field, select avatar, leave game
-        private async void SelectField_Click(object sender, MouseButtonEventArgs e)
+        private void SelectField_Click(object sender, MouseButtonEventArgs e)
         {
             if (yourQueue == true)
             {
@@ -248,8 +248,7 @@ namespace TicTacToeExaminion
         {
             await Task.Run(() =>
             {
-                if (server.Available > 0)
-                {
+        
                     NetworkStream stream = server.GetStream();
                     byte[] buffer = new byte[1024];
                     stream.Read(buffer, 0, buffer.Length);
@@ -326,19 +325,23 @@ namespace TicTacToeExaminion
                             }));
                         }
                     }
-                }
+                
             });
         }
         private async void TimerPC(object? sender, EventArgs e)
         {
             await Task.Run(() =>
             {
-                if (server.Available > 0)
+
+                try
                 {
+
+ 
                     NetworkStream stream = server.GetStream();
                     byte[] buffer = new byte[1024];
-                    stream.Read(buffer, 0, buffer.Length);
-                    string response = Encoding.ASCII.GetString(buffer).Replace("\0", "");
+                   stream.Read(buffer, 0, buffer.Length);
+                    string response = Encoding.ASCII.GetString(buffer).Replace("\0","");
+     
                     if (response.Contains("Win") || response.Contains("Tie"))
                     {
 
@@ -402,6 +405,10 @@ namespace TicTacToeExaminion
                             }));
                         }
                     }
+                }
+                catch
+                {
+
                 }
             });
         }

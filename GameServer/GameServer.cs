@@ -203,32 +203,38 @@ namespace GameServer
             });
             return result;
         }
-        public static async Task<string> MathGame(LobbyModel user, int CounterTie)
+        public static async Task<string> MathGamePC(LobbyModel user, LobbyModel bot, int CounterTie)
         {
+
             string result = "null";
             NetworkStream stream = user.client.GetStream();
             await Task.Run(() =>
             {
-                while (true)
+                if (CheckCells(bot))
                 {
-                    if (CheckCells(user))
-                    {
-                        result = user.Username + " Win";
-                        stream.Write(Encoding.ASCII.GetBytes(result));                      
-                        break;
-                    }
-                    else if(CounterTie == 9)
-                    {
-                        result = user.Username + " Tie";
-                        stream.Write(Encoding.ASCII.GetBytes(result));
-                        break;
-                    }
-                    else
-                    {
-                        result = user.Username + " Lose";
-                    }
+                    result ="Bot Win";
+                    stream.Write(Encoding.ASCII.GetBytes(result));
 
                 }
+                if (CheckCells(user))
+                {
+                    result = user.Username + " Win";
+                    stream.Write(Encoding.ASCII.GetBytes(result));
+
+                }
+                else if (CounterTie == 9)
+                {
+                    result = "Tie";
+                    stream.Write(Encoding.ASCII.GetBytes(result));
+
+                }
+                else
+                {
+                    result = "Lose";
+
+                }
+
+
             });
             return result;
         }
@@ -434,8 +440,9 @@ namespace GameServer
         #region PC game
         private async static void HandleClientPC(LobbyModel user, List<string> busyCells, int CounterTie)
         {
+            List<string> botChosses = new List<string>();
             NetworkStream stream = user.client.GetStream();
-            stream.Write(Encoding.ASCII.GetBytes("PC finded!"));
+            stream.Write(Encoding.ASCII.GetBytes("PC finded! Your turn"));
 
             await Task.Run(() =>
             {
@@ -443,36 +450,60 @@ namespace GameServer
                 {
                     byte[] buffer = new byte[1024];
                     stream.Read(buffer, 0, buffer.Length);
-                    string response = Encoding.ASCII.GetString(buffer);
-                    Console.WriteLine(response);
+                    string response = Encoding.ASCII.GetString(buffer).Replace("\0","");
+
                     if (response.Contains("Goodbye"))
                     {
                         stream.Write(Encoding.ASCII.GetBytes("Your oponent is exited"));
                         user.client.Close();
                         break;
                     }
-                    if (!busyCells.Contains(responseOne))
+                    if (!busyCells.Contains(response))
                     {
-                        busyCells.Add(responseOne);
+                        busyCells.Add(response);
                         stream.Write(Encoding.ASCII.GetBytes("Your: " + response));
-                        stream.Write(Encoding.ASCII.GetBytes("Oponent: " + response));
-                        user.Chooses.Add(responseOne);
+                        Console.WriteLine("Your: " + response);
 
-                        CounterTie++;
-                        if (user.Chooses.Count >= 3)
-                        {
-                            Thread.Sleep(300);
-                            string report = MathGame(user, CounterTie).Result;
-                            Console.WriteLine(report);
-                            if (report.Contains("Win") || report.Contains("Tie"))
-                            {
-                                break;
-                            }
-                        }
                     }
                     else
                     {
                         Console.WriteLine("One : busy");
+                    }
+                    string sentResponse = "0 0";
+                    while (true)
+                    {
+                        Random rd1 = new Random();
+                        Random rd2 = new Random();
+                        int one = rd1.Next(0, 3);
+                        int two = rd2.Next(0, 3);
+                        sentResponse = one + " " + two;
+                        if (!busyCells.Contains(sentResponse))
+                        {
+                            busyCells.Add(sentResponse);
+                            Console.WriteLine("Oponent: " + sentResponse);
+                            stream.Write(Encoding.ASCII.GetBytes("Oponent: " + sentResponse));
+                            break;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+
+                    user.Chooses.Add(response);
+                    botChosses.Add(sentResponse);
+                    CounterTie++;
+
+                    if (user.Chooses.Count >= 2 && botChosses.Count >= 2)
+                    {
+                        Thread.Sleep(300);
+                        LobbyModel bot = new LobbyModel(0, "Bot", null) { Chooses = botChosses };
+                        string report = MathGamePC(user,bot, CounterTie).Result;
+                        Console.WriteLine(report);
+                        if (report.Contains("Win") || report.Contains("Tie"))
+                        {
+                            break;
+                        }
                     }
                 }  
             });
