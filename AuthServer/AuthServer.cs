@@ -13,7 +13,7 @@ using System.Data.SqlTypes;
 
 namespace AuthServer
 {
-    internal class Program
+    internal class AuthServer
     {
         public static int serverPort = 10001;
         public static IPAddress serverAdress = IPAddress.Parse("127.0.0.1");
@@ -71,7 +71,6 @@ namespace AuthServer
                 SetAvatar(username, buffer);
             }
         }
-
         static async Task<byte[]> GetUser(string username)
         {
             User user = new User("null");
@@ -172,9 +171,14 @@ namespace AuthServer
                     connection.Open();
                     SqlCommand command = new SqlCommand($"IF NOT EXISTS (SELECT * FROM Users WHERE Username = '{username}') insert into Users (Username,Password) values ('{username}','{password}')", connection);
                     if (command.ExecuteNonQuery() > 0)
+                    {
                         result = "Registration succefull!";
+                        SetAvatar(username, File.ReadAllBytes("C:\\Users\\Bogdan\\source\\repos\\TicTacToeExaminion\\TicTacToeExaminion\\Images\\userLogo.png")); ;
+                    }
                     else
                         result = "User is contains, change username";
+
+                  
                 }
             });
             return result;

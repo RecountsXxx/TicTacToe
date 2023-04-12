@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,20 +25,44 @@ namespace TicTacToeExaminion
     {
         private User user = null;
         private DispatcherTimer timer = new DispatcherTimer();
+
         public AuthWindow()
         {
             InitializeComponent();
+            SetImage("Images/back.png",AuthGrid);
 
             timer.Interval = TimeSpan.FromSeconds(3);
             timer.Tick += Timer_Tick;
-
         }
 
+        #region Timer and SetImageForUIElement
         private void Timer_Tick(object? sender, EventArgs e)
         {
             ReportLabel.Opacity = 0;
             timer.Stop();
         }
+        public static void SetImage(string imagePath,UIElement UI)
+        {
+            string finishPath = System.IO.Path.GetFullPath(imagePath);
+            if (UI is Grid grid)
+            {
+                BitmapImage bitmapImage = new BitmapImage();
+                bitmapImage.BeginInit();
+                bitmapImage.StreamSource = new MemoryStream(File.ReadAllBytes(finishPath));
+                bitmapImage.EndInit();
+                grid.Background = new ImageBrush(bitmapImage);
+                ((ImageBrush)grid.Background).Stretch = Stretch.UniformToFill;
+            }
+            if (UI is Image image)
+            {
+                BitmapImage bitmapImage = new BitmapImage();
+                bitmapImage.BeginInit();
+                bitmapImage.StreamSource = new MemoryStream(File.ReadAllBytes(finishPath));
+                bitmapImage.EndInit();
+                image.Source = bitmapImage;
+            }
+        }
+        #endregion
 
         #region Window buttons
 
@@ -71,6 +97,7 @@ namespace TicTacToeExaminion
         }
         #endregion
 
+        #region Register and Login
         private void RegisterBtn_Click(object sender, MouseButtonEventArgs e)
         {
             string username = registerUsernameText.Text;
@@ -144,6 +171,6 @@ namespace TicTacToeExaminion
             loginGrid.Visibility = Visibility.Hidden;
             registerGrid.Visibility = Visibility.Visible;
         }
-
+        #endregion
     }
 }

@@ -5,15 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TicTacToeExaminion"
         mc:Ignorable="d"
-Title="MainWindow" Closed="Window_Closed" WindowStartupLocation="CenterScreen" MouseDown="Window_DragDrop" WindowStyle="None" ResizeMode="NoResize" Height="465" Width="450">
-    <Grid>
+Title="MainWindow" Closing="Window_Closing" WindowStartupLocation="CenterScreen" MouseDown="Window_DragDrop" WindowStyle="None" ResizeMode="NoResize" Height="465" Width="450">
+    <Grid x:Name="MainGameGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="25"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <Grid.Background>
-            <ImageBrush Stretch="UniformToFill" ImageSource="C:\Users\Bogdan\source\repos\TicTacToe\TicTacToe\Images\backGame.png"/>
-        </Grid.Background>
         <Grid Background="#5F1DD1" Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
@@ -44,7 +41,7 @@ Title="MainWindow" Closed="Window_Closed" WindowStartupLocation="CenterScreen" M
                         <ColumnDefinition Width="120"/>
                         <ColumnDefinition Width="350"/>
                     </Grid.ColumnDefinitions>
-                    <Image  Width="100" Height="100" x:Name="AvatarUserImage" Stretch="UniformToFill" VerticalAlignment="Center" HorizontalAlignment="Center" MouseLeftButtonDown="SelectAvatar_Click" Grid.Column="0" Margin="10,10,0,0"  Source="C:\Users\Bogdan\source\repos\TicTacToe\TicTacToe\Images\userq.png">
+                    <Image  Width="100" Height="100" x:Name="AvatarUserImage" Stretch="UniformToFill" VerticalAlignment="Center" HorizontalAlignment="Center" MouseLeftButtonDown="SelectAvatar_Click" Grid.Column="0" Margin="10,10,0,0" >
                         <Image.Clip>
                             <EllipseGeometry Center="50,50" RadiusX="50" RadiusY="50" />
                         </Image.Clip>
@@ -91,24 +88,24 @@ Title="MainWindow" Closed="Window_Closed" WindowStartupLocation="CenterScreen" M
             <Label x:Name="LabelTurn" Margin="165,36,165,369" FontSize="18" HorizontalContentAlignment="Center" Foreground="AliceBlue" Content="Oponent turn" ></Label>
             <Border CornerRadius="8" Height="100" Width="150" BorderBrush="CornflowerBlue" BorderThickness="2" Margin="0,10,280,330">
                 <Grid>
-                    <Image Width="75" Height="75" x:Name="AvatarUserGameImage" Stretch="UniformToFill" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5,2,0,0"  Source="C:\Users\Bogdan\source\repos\TicTacToe\TicTacToe\Images\userq.png">
+                    <Image Width="75" Height="75" x:Name="AvatarUserGameImage" Stretch="UniformToFill" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5,2,0,0"  >
                         <Image.Clip>
-                            <EllipseGeometry Center="35,35" RadiusX="35" RadiusY="35" />
+                            <EllipseGeometry Center="38,38" RadiusX="38" RadiusY="38" />
                         </Image.Clip>
                     </Image>
-                    <Image Width="50" Height="50" x:Name="YourIcon" Stretch="UniformToFill" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="80,0,0,0"  Source="C:\Users\Bogdan\source\repos\TicTacToe\TicTacToe\Images\circle.png">
+                    <Image Width="50" Height="50" x:Name="YourIcon" Stretch="UniformToFill" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="80,0,0,0">
                     </Image>
                     <Label x:Name="userNameGameLabel"  Content="Bogdan" FontWeight="Bold" Height="32" VerticalAlignment="Bottom" HorizontalAlignment="Left" FontSize="16" Foreground="White" FontFamily="Microsoft JhengHei" Margin="10,-3,0,-4"/>
                 </Grid>
             </Border>
             <Border CornerRadius="8" Height="100" Width="150" BorderBrush="CornflowerBlue" BorderThickness="2" Margin="280,10,0,330">
                 <Grid>
-                    <Image Width="75" Height="75" x:Name="AvatarUserGameImageTwo" Stretch="UniformToFill" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5,2,0,0"  Source="C:\Users\Bogdan\source\repos\TicTacToe\TicTacToe\Images\userq.png">
+                    <Image Width="75" Height="75" x:Name="AvatarUserGameImageTwo" Stretch="UniformToFill" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="5,2,0,0"  >
                         <Image.Clip>
-                            <EllipseGeometry Center="35,35" RadiusX="35" RadiusY="35" />
+                            <EllipseGeometry Center="38,38" RadiusX="38" RadiusY="38" />
                         </Image.Clip>
                     </Image>
-                    <Image Width="50" Height="50" x:Name="OponentIcon" Stretch="UniformToFill" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="80,0,0,0"  Source="C:\\Users\\Bogdan\\source\\repos\\TicTacToe\\TicTacToe\\Images\\cross.png">
+                    <Image Width="50" Height="50" x:Name="OponentIcon" Stretch="UniformToFill" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="80,0,0,0" >
                     </Image>
                     <Label x:Name="userNameGameLabelTwo"  Content="Bogdan" FontWeight="Bold" Height="32" VerticalAlignment="Bottom" HorizontalAlignment="Left" FontSize="16" Foreground="White" FontFamily="Microsoft JhengHei" Margin="10,-3,0,-4"/>
                 </Grid>

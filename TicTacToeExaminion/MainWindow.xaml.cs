@@ -1,6 +1,8 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.DirectoryServices.ActiveDirectory;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -22,9 +24,6 @@ using TicTacToeLiblary;
 
 namespace TicTacToeExaminion
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         //убрать фиксированные пути, исправить вывод победителя, исправить
@@ -33,89 +32,82 @@ namespace TicTacToeExaminion
         private TcpClient server = new TcpClient();
         private NetworkStream stream = null;
         private DispatcherTimer timer = new DispatcherTimer();
+        private DispatcherTimer timerPC = new DispatcherTimer();
         private User user = null;
         private CancellationTokenSource cancelation = null;
-      
 
         private bool yourQueue = true;
         private bool IsSearchingGame = false;
-        private string YourTurnAvatar = "C:\\Users\\Bogdan\\source\\repos\\TicTacToeExaminion\\TicTacToeExaminion\\Images\\circle.png";
-        private string OponentTurnAvatar = "C:\\Users\\Bogdan\\source\\repos\\TicTacToeExaminion\\TicTacToeExaminion\\Images\\cross.png";
+        private string YourTurnAvatar = "Images/circle.png";
+        private string OponentTurnAvatar = "Images/cross.png";
 
         public MainWindow(User user)
         {
+  
             InitializeComponent();
             this.user = user;
-          
+
+            AuthWindow.SetImage("Images/backGame.png", MainGameGrid);
+            
             LoadUserInfo();
 
             timer.Interval = TimeSpan.FromMilliseconds(250);
-            timer.Tick += Timer_Tick;
+            timer.Tick += PlayerTimer;
+
+            timerPC.Interval = TimeSpan.FromMilliseconds(250);
+            timerPC.Tick += TimerPC;
         }
 
-        #region Window buttons
-
-        private void btnMinimize_Click(object sender, RoutedEventArgs e)
+        #region Play player or PC
+        private void SetAvatarAndUserNameForGame(User user, Image image,Label label)
         {
-            WindowState = WindowState.Minimized;
-        }
-
-        private void btnRestore_Click(object sender, RoutedEventArgs e)
-        {
-            if (WindowState == WindowState.Maximized)
+            Dispatcher.BeginInvoke(new Action(() =>
             {
-                WindowState = WindowState.Normal;
+                BitmapImage bitmapImage = new BitmapImage();
+                bitmapImage.BeginInit();
+                bitmapImage.StreamSource = new MemoryStream(user.PathAvatar);
+                bitmapImage.EndInit();
+                image.Source = bitmapImage;
+                label.Content = user.Username;
+            }));
+        }
+        private void SetIcons(string arrResponse)
+        {
+            if (arrResponse.Contains("Your"))
+            {
+                Dispatcher.Invoke(new Action(() =>
+                {
+                    LabelTurn.Content = "Your turn";
+                    yourQueue = true;
+
+                    YourTurnAvatar = System.IO.Path.GetFullPath("Images/circle.png");
+                    YourIcon.Source = BitmapFrame.Create(new Uri(YourTurnAvatar));
+
+                    OponentTurnAvatar = System.IO.Path.GetFullPath("Images/cross.png");
+                    OponentIcon.Source = BitmapFrame.Create(new Uri(OponentTurnAvatar));
+                }));
             }
             else
             {
-                WindowState = WindowState.Maximized;
-            }
+                Dispatcher.Invoke(new Action(() =>
+                {
+                    LabelTurn.Content = "Oponent turn";
+                    yourQueue = false;
 
-        }
-        private void btnClose_Click(object sender, RoutedEventArgs e)
-        {
-            Environment.Exit(0);
-        }
-        private void Window_DragDrop(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ButtonState == MouseButtonState.Pressed)
-            {
-                DragMove();
-            }
-        }
-        private void ExitAccount_Click(object sender, MouseButtonEventArgs e)
-        {
-            AuthWindow window = new AuthWindow();
-            window.Show();
-            this.Close();
-        }
-        private void Window_Closed(object sender, EventArgs e)
-        {
-            if (server.Available > 0)
-            {
-                stream = server.GetStream();
-                stream.Write(Encoding.ASCII.GetBytes("Bye"));
-                server.Close();
-            }
-        }
-        #endregion
+                    YourTurnAvatar = System.IO.Path.GetFullPath("Images/cross.png");
+                    YourIcon.Source = BitmapFrame.Create(new Uri(YourTurnAvatar));
 
-        private void LeaveGame_Click(object sender, MouseButtonEventArgs e)
-        {
-            labelVsPlayer.Content = "vs Player";
-            LeaveGameBtn.Visibility = Visibility.Hidden;
-            ExitAccountBtn.Visibility = Visibility.Visible;
-            SlowOpacityGameGrid();
-            IsSearchingGame = false;
-            foreach (var item in GameGridTemp.Children)
-            {
-                Border border = (Border)item;
-                border.Background = Brushes.CornflowerBlue;
-
+                    OponentTurnAvatar = System.IO.Path.GetFullPath("Images/circle.png");
+                    OponentIcon.Source = BitmapFrame.Create(new Uri(OponentTurnAvatar));
+                }));
             }
-            stream = server.GetStream();
-            stream.Write(Encoding.ASCII.GetBytes("Bye"));
+            Dispatcher.Invoke(new Action(() =>
+            {
+                LeaveGameBtn.Visibility = Visibility.Visible;
+                ExitAccountBtn.Visibility = Visibility.Hidden;
+            }));
         }
+
         private async void PlayPlayer_Click(object sender, MouseButtonEventArgs e)
         {
             server = new TcpClient();
@@ -134,89 +126,35 @@ namespace TicTacToeExaminion
                     try
                     {
                         if (cancelation.IsCancellationRequested)
-                        {
                             return;
-                        }
-
                         byte[] buffer = new byte[18184];
                         await stream.ReadAsync(buffer, 0, buffer.Length, cancelation.Token);
-                   
-
                         string response = Encoding.ASCII.GetString(buffer);
-                        string[] arrResponse = response.Split(" ");
                         if (response.Contains("Oponent finded!"))
                         {
-                            if (arrResponse.Contains("Your"))
-                            {
-                                Dispatcher.Invoke(new Action(() =>
-                                {
-                                    LabelTurn.Content = "Your turn";
-                                    yourQueue = true;
-                                    YourTurnAvatar = @"C:\Users\Bogdan\source\repos\TicTacToeExaminion\TicTacToeExaminion\Images\circle.png";
-                                    YourIcon.Source = BitmapFrame.Create(new Uri(YourTurnAvatar));
-
-                                    OponentTurnAvatar = @"C:\Users\Bogdan\source\repos\TicTacToeExaminion\TicTacToeExaminion\Images\cross.png";
-                                    OponentIcon.Source = BitmapFrame.Create(new Uri(OponentTurnAvatar));
-                                }));
-                            }
-                            else
-                            {
-                                Dispatcher.Invoke(new Action(() =>
-                                {
-                                    LabelTurn.Content = "Oponent turn";
-                                    yourQueue = false;
-                                    OponentTurnAvatar = @"C:\Users\Bogdan\source\repos\TicTacToeExaminion\TicTacToeExaminion\Images\circle.png";
-
-                                    OponentIcon.Source = BitmapFrame.Create(new Uri(OponentTurnAvatar));
-
-                                    YourTurnAvatar = @"C:\Users\Bogdan\source\repos\TicTacToeExaminion\TicTacToeExaminion\Images\cross.png";
-                                    YourIcon.Source = BitmapFrame.Create(new Uri(YourTurnAvatar));
-                                }));
-                            }
-                            Dispatcher.Invoke(new Action(() =>
-                            {
-                                LeaveGameBtn.Visibility = Visibility.Visible;
-                                ExitAccountBtn.Visibility = Visibility.Hidden;
-                            }));
                             stream.Read(buffer, 0, buffer.Length);
-
                             BinaryFormatter formatter = new BinaryFormatter();
-                            using (MemoryStream ms = new MemoryStream(buffer))
-                            {
-                                oponent = (User)formatter.Deserialize(ms);
-                            }
-                            Dispatcher.Invoke(new Action(() =>
-                            {
-                                userNameGameLabelTwo.Content = oponent.Username;
-                                userNameGameLabel.Content = user.Username;
-                            }));
- 
-                                Dispatcher.BeginInvoke(new Action(() =>
-                                {
-                                    BitmapImage bitmapImage = new BitmapImage();
-                                    bitmapImage.BeginInit();
-                                    bitmapImage.StreamSource = new MemoryStream(user.PathAvatar);
-                                    bitmapImage.EndInit();
-                                    AvatarUserGameImage.Source = bitmapImage;
-                                }));
-                                Dispatcher.BeginInvoke(new Action(() =>
-                                {
-                                    BitmapImage bitmapImage = new BitmapImage();
-                                    bitmapImage.BeginInit();
-                                    bitmapImage.StreamSource = new MemoryStream(oponent.PathAvatar);
-                                    bitmapImage.EndInit();
-                                    AvatarUserGameImageTwo.Source = bitmapImage;
-                                }));
+                            MemoryStream ms = new MemoryStream(buffer);
+                            oponent = (User)formatter.Deserialize(ms);
+                            ms.Dispose();
+
+                            SetIcons(response);
+                            SetAvatarAndUserNameForGame(user, AvatarUserGameImage,userNameGameLabel);
+                            SetAvatarAndUserNameForGame(oponent, AvatarUserGameImageTwo,userNameGameLabelTwo);
+
+                            IsSearchingGame = false;
                             SlowOpacityMainGrid();
                             timer.Start();
                         }
-
                     }
                     catch
                     {
-                        IsSearchingGame = false;
-                        stream.Write(Encoding.ASCII.GetBytes("Goodbye | " + user.Username));
-                        cancelation.Cancel();
+                        if (server.Connected == true)
+                        {
+                            IsSearchingGame = false;
+                            stream.Write(Encoding.ASCII.GetBytes("Goodbye | " + user.Username));
+                            cancelation.Cancel();
+                        }
                     }
                 }, cancelation.Token);
             }
@@ -226,16 +164,39 @@ namespace TicTacToeExaminion
                 labelVsPlayer.Content = "vs Player";
                 stream.Write(Encoding.ASCII.GetBytes("Goodbye | " + user.Username));
                 cancelation.Cancel();
-     
+                server.Close();
+
             }
         }
-        private void PlayPC_Click(object sender, MouseButtonEventArgs e)
+        private async void PlayPC_Click(object sender, MouseButtonEventArgs e)
         {
-            //LeaveGameBtn.Visibility = Visibility.Visible;
-            //ExitAccountBtn.Visibility = Visibility.Hidden;
-            //SlowOpacityMainGrid();
-        }
+            server = new TcpClient();
+            server.Connect("127.0.0.1", 10002);
+            stream = server.GetStream();
+            stream.Write(Encoding.ASCII.GetBytes("PlayPC | " + user.Username));
+            await Task.Run(() => {
+                byte[] buffer = new byte[1024];
+                stream.Read(buffer,0,buffer.Length);
+                string response = Encoding.ASCII.GetString(buffer);
+                if(response.Contains("PC finded!"))
+                {
+                    MessageBox.Show("PC Finded, game starting!", "", MessageBoxButton.OK, MessageBoxImage.Question);
+                    SetIcons(response);
+                    SetAvatarAndUserNameForGame(user, AvatarUserGameImage, userNameGameLabel);
+                    SetAvatarAndUserNameForGame(new User("Bot") { PathAvatar = File.ReadAllBytes(System.IO.Path.GetFullPath("Images/userLogo.png")) }, AvatarUserGameImageTwo, userNameGameLabelTwo);
 
+                    Dispatcher.Invoke(new Action(() => {
+                        SlowOpacityMainGrid();
+                        LeaveGameBtn.Visibility = Visibility.Visible;
+                        ExitAccountBtn.Visibility = Visibility.Hidden;
+                    }));
+                    timerPC.Start();
+                }
+            });
+        }
+        #endregion
+
+        #region Select field, select avatar, leave game
         private async void SelectField_Click(object sender, MouseButtonEventArgs e)
         {
             if (yourQueue == true)
@@ -261,8 +222,29 @@ namespace TicTacToeExaminion
                 TicTacToe.SetAvatar(user.Username, File.ReadAllBytes(pathAvatar));
             }
         }
+        private void LeaveGame_Click(object sender, MouseButtonEventArgs e)
+        {
 
-        private async void Timer_Tick(object? sender, EventArgs e)
+            labelVsPlayer.Content = "vs Player";
+            labelVsPlayer.IsEnabled = true;
+            LeaveGameBtn.Visibility = Visibility.Hidden;
+            ExitAccountBtn.Visibility = Visibility.Visible;
+            SlowOpacityGameGrid();
+            IsSearchingGame = false;
+            foreach (var item in GameGridTemp.Children)
+            {
+                Border border = (Border)item;
+                border.Background = Brushes.CornflowerBlue;
+
+            }
+            stream = server.GetStream();
+            stream.Write(Encoding.ASCII.GetBytes("Goodbye"));
+
+        }
+        #endregion
+
+        #region Timers
+        private async void PlayerTimer(object? sender, EventArgs e)
         {
             await Task.Run(() =>
             {
@@ -275,14 +257,16 @@ namespace TicTacToeExaminion
 
                     if (response.Contains("Your oponent is exited"))
                     {
-                        MessageBox.Show(response);
+ 
+                        MessageBox.Show(response, "", MessageBoxButton.OK, MessageBoxImage.Question);
                         ResetUI();
                         timer.Stop();
                         return;
                     }
                     if (response.Contains("Win") || response.Contains("Tie"))
                     {
-                        MessageBox.Show(response, "Result", MessageBoxButton.OK, MessageBoxImage.Information);
+                        
+                       MessageBox.Show(response, "Result", MessageBoxButton.OK, MessageBoxImage.Information);
                         LoadUserInfo();
                         ResetUI();
                         timer.Stop();
@@ -345,7 +329,85 @@ namespace TicTacToeExaminion
                 }
             });
         }
+        private async void TimerPC(object? sender, EventArgs e)
+        {
+            await Task.Run(() =>
+            {
+                if (server.Available > 0)
+                {
+                    NetworkStream stream = server.GetStream();
+                    byte[] buffer = new byte[1024];
+                    stream.Read(buffer, 0, buffer.Length);
+                    string response = Encoding.ASCII.GetString(buffer).Replace("\0", "");
+                    if (response.Contains("Win") || response.Contains("Tie"))
+                    {
 
+                        MessageBox.Show(response, "Result", MessageBoxButton.OK, MessageBoxImage.Information);
+                        LoadUserInfo();
+                        ResetUI();
+                        timerPC.Stop();
+                        return;
+                    }
+
+                    string[] arrResponse = response.Split(" ");
+                    if (arrResponse.Length > 1 && arrResponse[0].Contains("Your:"))
+                    {
+                        Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            LabelTurn.Content = "Oponent turn";
+                        }));
+                        string YourSelected = arrResponse[1] + " " + arrResponse[2];
+
+                        if (yourQueue == true)
+                        {
+                            Dispatcher.BeginInvoke(new Action(() =>
+                            {
+                                foreach (var item in GameGridTemp.Children)
+                                {
+                                    Border border = (Border)item;
+                                    if (border.Tag.ToString().Contains(YourSelected))
+                                    {
+                                        BitmapImage backgroundImage = new BitmapImage(new Uri(YourTurnAvatar));
+                                        ImageBrush backgroundBrush = new ImageBrush(backgroundImage);
+                                        border.Background = backgroundBrush;
+                                    }
+                                }
+                            }));
+                            yourQueue = false;
+                        }
+                    }
+                    if (arrResponse.Length > 1 && arrResponse[0].Contains("Oponent:"))
+                    {
+                        Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            LabelTurn.Content = "Your turn";
+                        }));
+                        string OponentSelected = arrResponse[1] + " " + arrResponse[2];
+
+                        if (yourQueue != true)
+                        {
+                            Dispatcher.BeginInvoke(new Action(() =>
+                            {
+                                foreach (var item in GameGridTemp.Children)
+                                {
+                                    Border border = (Border)item;
+                                    if (border.Tag.ToString().Contains(OponentSelected))
+                                    {
+                                        BitmapImage backgroundImage = new BitmapImage(new Uri(OponentTurnAvatar));
+                                        ImageBrush backgroundBrush = new ImageBrush(backgroundImage);
+                                        border.Background = backgroundBrush;
+                                    }
+                                }
+                                yourQueue = true;
+                            }));
+                        }
+                    }
+                }
+            });
+        }
+        #endregion
+
+        #region SlowOpacity
         private async void SlowOpacityGameGrid()
         {
             await Task.Factory.StartNew(() =>
@@ -415,10 +477,14 @@ namespace TicTacToeExaminion
                 }));
             });
         }
+        #endregion
+
+        #region Reset UI, LoadUserInfo
         private void ResetUI()
         {
             server.Close();
-            Dispatcher.Invoke(new Action(() => {
+            Dispatcher.Invoke(new Action(() =>
+            {
                 labelVsPlayer.Content = "vs Player";
                 LeaveGameBtn.Visibility = Visibility.Hidden;
                 ExitAccountBtn.Visibility = Visibility.Visible;
@@ -436,7 +502,8 @@ namespace TicTacToeExaminion
         private void LoadUserInfo()
         {
             user = TicTacToe.GetUser(user.Username, user.Password);
-            Dispatcher.BeginInvoke(new Action(() => {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
                 UsernameLabel.Content = "Username: " + user.Username;
                 WinsLabel.Content = "Wins: " + user.Wins;
                 LosesLabel.Content = "Loses: " + user.Loses;
@@ -463,5 +530,71 @@ namespace TicTacToeExaminion
                 }
             }));
         }
+        #endregion
+
+        #region Window buttons
+        private void btnMinimize_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+        private void btnRestore_Click(object sender, RoutedEventArgs e)
+        {
+            if (WindowState == WindowState.Maximized)
+            {
+                WindowState = WindowState.Normal;
+            }
+            else
+            {
+                WindowState = WindowState.Maximized;
+            }
+
+        }
+        private void btnClose_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+        private void Window_DragDrop(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ButtonState == MouseButtonState.Pressed)
+            {
+                DragMove();
+            }
+        }
+        private void ExitAccount_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (IsSearchingGame == true)
+            {
+                MessageBox.Show("Сперва отключитесь");
+
+            }
+            else
+            {
+
+                AuthWindow window = new AuthWindow();
+                window.Show();
+                this.Close();
+            }
+        }
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (server.Connected == true)
+            {
+                if (IsSearchingGame == true)
+                {
+                    server = new TcpClient();
+                    server.Connect("127.0.0.1", 10002);
+                    stream = server.GetStream();
+                    stream.Write(Encoding.ASCII.GetBytes("Goodbye | " + user.Username));
+                    server.Close();
+                }
+                else
+                {
+                    stream.Write(Encoding.ASCII.GetBytes("Goodbye"));
+                    server.Close();
+                }
+            }
+        }
+        #endregion
+
     }
 }

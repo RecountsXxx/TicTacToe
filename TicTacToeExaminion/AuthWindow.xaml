@@ -6,14 +6,11 @@
         xmlns:local="clr-namespace:TicTacToeExaminion"
         mc:Ignorable="d"
            Title="MainWindow"   WindowStartupLocation="CenterScreen" MouseDown="Window_DragDrop" WindowStyle="None" ResizeMode="NoResize" Height="465" Width="450">
-    <Grid>
+    <Grid x:Name="AuthGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="25"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <Grid.Background>
-            <ImageBrush Stretch="UniformToFill" ImageSource="C:\Users\Bogdan\source\repos\TicTacToeExaminion\TicTacToeExaminion\Images\back.png"/>
-        </Grid.Background>
         <Grid Background="#5F1DD1" Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
