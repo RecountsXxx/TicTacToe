@@ -11,6 +11,7 @@ using TicTacToeLiblary;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 
 namespace GameServer
 {
@@ -217,25 +218,24 @@ namespace GameServer
                     stream.Write(Encoding.ASCII.GetBytes(result));
 
                 }
+                else if (CounterTie >= 9)
+                {
+                    result = "Tie";
+                    stream.Write(Encoding.ASCII.GetBytes(result));
+
+                }
                 if (CheckCells(user))
                 {
                     result = user.Username + " Win";
                     stream.Write(Encoding.ASCII.GetBytes(result));
 
                 }
-                else if (CounterTie == 9)
+                else if (CounterTie >= 9)
                 {
                     result = "Tie";
                     stream.Write(Encoding.ASCII.GetBytes(result));
 
                 }
-                else
-                {
-                    result = "Lose";
-
-                }
-
-
             });
             return result;
         }
@@ -315,6 +315,7 @@ namespace GameServer
                         GameIsEnded = true;
                         break;
                     }
+               
                     if (responseTwo.Length > 0 && responseTwo.Length < 4)
                     {
                         if (!busyCells.Contains(responseTwo))
@@ -471,7 +472,8 @@ namespace GameServer
                         Console.WriteLine("One : busy");
                     }
                     string sentResponse = "0 0";
-                    while (true)
+                    
+                    while (busyCells.Count < 9)
                     {
                         Random rd1 = new Random();
                         Random rd2 = new Random();
@@ -493,7 +495,7 @@ namespace GameServer
 
                     user.Chooses.Add(response);
                     botChosses.Add(sentResponse);
-                    CounterTie++;
+                    CounterTie += 2;
 
                     if (user.Chooses.Count >= 2 && botChosses.Count >= 2)
                     {
@@ -506,6 +508,8 @@ namespace GameServer
                             break;
                         }
                     }
+
+                    
                 }  
             });
         }

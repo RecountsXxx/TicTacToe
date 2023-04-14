@@ -248,84 +248,94 @@ namespace TicTacToeExaminion
         {
             await Task.Run(() =>
             {
-        
-                    NetworkStream stream = server.GetStream();
-                    byte[] buffer = new byte[1024];
-                    stream.Read(buffer, 0, buffer.Length);
-                    string response = Encoding.ASCII.GetString(buffer).Replace("\0", "");
+                if (server.Connected)
+                {
+                    try
+                    {
+                        NetworkStream stream = server.GetStream();
+                        byte[] buffer = new byte[1024];
+                        stream.Read(buffer, 0, buffer.Length);
+                        string response = Encoding.ASCII.GetString(buffer).Replace("\0", "");
 
-                    if (response.Contains("Your oponent is exited"))
-                    {
- 
-                        MessageBox.Show(response, "", MessageBoxButton.OK, MessageBoxImage.Question);
-                        ResetUI();
-                        timer.Stop();
-                        return;
-                    }
-                    if (response.Contains("Win") || response.Contains("Tie"))
-                    {
-                        
-                       MessageBox.Show(response, "Result", MessageBoxButton.OK, MessageBoxImage.Information);
-                        LoadUserInfo();
-                        ResetUI();
-                        timer.Stop();
-                        return;
-                    }
-
-                    string[] arrResponse = response.Split(" ");
-                    if (arrResponse.Length > 1 && arrResponse[0].Contains("Your:"))
-                    {
-                        Dispatcher.BeginInvoke(new Action(() =>
+                        if (response.Contains("Your oponent is exited"))
                         {
-                            LabelTurn.Content = "Oponent turn";
-                        }));
-                        string YourSelected = arrResponse[1] + " " + arrResponse[2];
 
-                        if (yourQueue == true)
+                            MessageBox.Show(response, "", MessageBoxButton.OK, MessageBoxImage.Question);
+                            ResetUI();
+                            timer.Stop();
+                            return;
+                        }
+                        if (response.Contains("Win") || response.Contains("Tie"))
+                        {
+
+                            MessageBox.Show(response, "Result", MessageBoxButton.OK, MessageBoxImage.Information);
+                            LoadUserInfo();
+                            ResetUI();
+                            timer.Stop();
+                            return;
+                        }
+
+                        string[] arrResponse = response.Split(" ");
+                        if (arrResponse.Length > 1 && arrResponse[0].Contains("Your:"))
                         {
                             Dispatcher.BeginInvoke(new Action(() =>
                             {
-                                foreach (var item in GameGridTemp.Children)
-                                {
-                                    Border border = (Border)item;
-                                    if (border.Tag.ToString().Contains(YourSelected))
-                                    {
-                                        BitmapImage backgroundImage = new BitmapImage(new Uri(YourTurnAvatar));
-                                        ImageBrush backgroundBrush = new ImageBrush(backgroundImage);
-                                        border.Background = backgroundBrush;
-                                    }
-                                }
+                                LabelTurn.Content = "Oponent turn";
                             }));
-                            yourQueue = false;
-                        }
-                    }
-                    if (arrResponse.Length > 1 && arrResponse[0].Contains("Oponent:"))
-                    {
-                        Dispatcher.BeginInvoke(new Action(() =>
-                        {
-                            LabelTurn.Content = "Your turn";
-                        }));
-                        string OponentSelected = arrResponse[1] + " " + arrResponse[2];
+                            string YourSelected = arrResponse[1] + " " + arrResponse[2];
 
-                        if (yourQueue != true)
+                            if (yourQueue == true)
+                            {
+                                Dispatcher.BeginInvoke(new Action(() =>
+                                {
+                                    foreach (var item in GameGridTemp.Children)
+                                    {
+                                        Border border = (Border)item;
+                                        if (border.Tag.ToString().Contains(YourSelected))
+                                        {
+                                            BitmapImage backgroundImage = new BitmapImage(new Uri(YourTurnAvatar));
+                                            ImageBrush backgroundBrush = new ImageBrush(backgroundImage);
+                                            border.Background = backgroundBrush;
+                                        }
+                                    }
+                                }));
+                                yourQueue = false;
+                            }
+                        }
+                        if (arrResponse.Length > 1 && arrResponse[0].Contains("Oponent:"))
                         {
                             Dispatcher.BeginInvoke(new Action(() =>
                             {
-                                foreach (var item in GameGridTemp.Children)
-                                {
-                                    Border border = (Border)item;
-                                    if (border.Tag.ToString().Contains(OponentSelected))
-                                    {
-                                        BitmapImage backgroundImage = new BitmapImage(new Uri(OponentTurnAvatar));
-                                        ImageBrush backgroundBrush = new ImageBrush(backgroundImage);
-                                        border.Background = backgroundBrush;
-                                    }
-                                }
-                                yourQueue = true;
+                                LabelTurn.Content = "Your turn";
                             }));
+                            string OponentSelected = arrResponse[1] + " " + arrResponse[2];
+
+                            if (yourQueue != true)
+                            {
+                                Dispatcher.BeginInvoke(new Action(() =>
+                                {
+                                    foreach (var item in GameGridTemp.Children)
+                                    {
+                                        Border border = (Border)item;
+                                        if (border.Tag.ToString().Contains(OponentSelected))
+                                        {
+                                            BitmapImage backgroundImage = new BitmapImage(new Uri(OponentTurnAvatar));
+                                            ImageBrush backgroundBrush = new ImageBrush(backgroundImage);
+                                            border.Background = backgroundBrush;
+                                        }
+                                    }
+                                    yourQueue = true;
+                                }));
+                            }
                         }
+
                     }
-                
+                    catch
+                    {
+
+                    }
+                }
+
             });
         }
         private async void TimerPC(object? sender, EventArgs e)
@@ -335,8 +345,6 @@ namespace TicTacToeExaminion
 
                 try
                 {
-
- 
                     NetworkStream stream = server.GetStream();
                     byte[] buffer = new byte[1024];
                    stream.Read(buffer, 0, buffer.Length);
