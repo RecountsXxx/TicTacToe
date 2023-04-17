@@ -18,9 +18,6 @@ using TicTacToeLiblary;
 
 namespace TicTacToeExaminion
 {
-    /// <summary>
-    /// Логика взаимодействия для AuthWindow.xaml
-    /// </summary>
     public partial class AuthWindow : Window
     {
         private User user = null;

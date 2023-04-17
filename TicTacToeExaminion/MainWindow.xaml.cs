@@ -26,9 +26,6 @@ namespace TicTacToeExaminion
 {
     public partial class MainWindow : Window
     {
-        //убрать фиксированные пути, исправить вывод победителя, исправить
-        //нажатие подключиться много раз, когда много раз нажимаешь vs Player исправить это
-
         private TcpClient server = new TcpClient();
         private NetworkStream stream = null;
         private DispatcherTimer timer = new DispatcherTimer();

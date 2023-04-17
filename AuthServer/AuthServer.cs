@@ -36,6 +36,7 @@ namespace AuthServer
                 thread.Start();
             }
         }
+
         static void HandleClient(TcpClient client, string response)
         {
             NetworkStream ns = client.GetStream();

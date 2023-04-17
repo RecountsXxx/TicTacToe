@@ -58,7 +58,6 @@ namespace GameServer
                 NetworkStream nsOne = client.GetStream();
                 bufferLenght = nsOne.Read(buffer, 0, buffer.Length);
                 string response = Encoding.ASCII.GetString(buffer, 0, bufferLenght);
-                Console.WriteLine(response);
 
                 string username = response.Split(" ")[2];
                 if (response.Contains("PlayPC"))
@@ -276,16 +275,11 @@ namespace GameServer
                             {
                                 Thread.Sleep(300);
                                 string report = MathGame(userFirst, userSecond,CounterTie).Result;
-                                Console.WriteLine(report);
                                 if (report.Contains("Win") || report.Contains("Tie"))
                                 {
                                     break;
                                 }
                             }
-                        }
-                        else
-                        {
-                            Console.WriteLine("One : busy");
                         }
                     }
                 }
@@ -329,16 +323,11 @@ namespace GameServer
                             {
                                 Thread.Sleep(300);
                                 string report = MathGame(userSecond, userFirst, CounterTie).Result;
-                                Console.WriteLine(report);
                                 if (report.Contains("Win") || report.Contains("Tie"))
                                 {
                                     break;
                                 }
                             }
-                        }
-                        else
-                        {
-                            Console.WriteLine("Two : busy");
                         }
                     }
                 }
@@ -350,7 +339,7 @@ namespace GameServer
         }
         private async static void HandleClient(LobbyModel userFirst, LobbyModel userSecond, List<string> busyCells, int CounterTie)
         {
-            Console.WriteLine("Game started!");
+
 
             lobbyModels.Remove(userFirst);
             lobbyModels.Remove(userSecond);
@@ -464,12 +453,7 @@ namespace GameServer
                     {
                         busyCells.Add(response);
                         stream.Write(Encoding.ASCII.GetBytes("Your: " + response));
-                        Console.WriteLine("Your: " + response);
 
-                    }
-                    else
-                    {
-                        Console.WriteLine("One : busy");
                     }
                     string sentResponse = "0 0";
                     
@@ -483,7 +467,6 @@ namespace GameServer
                         if (!busyCells.Contains(sentResponse))
                         {
                             busyCells.Add(sentResponse);
-                            Console.WriteLine("Oponent: " + sentResponse);
                             stream.Write(Encoding.ASCII.GetBytes("Oponent: " + sentResponse));
                             break;
                         }
@@ -502,7 +485,6 @@ namespace GameServer
                         Thread.Sleep(300);
                         LobbyModel bot = new LobbyModel(0, "Bot", null) { Chooses = botChosses };
                         string report = MathGamePC(user,bot, CounterTie).Result;
-                        Console.WriteLine(report);
                         if (report.Contains("Win") || report.Contains("Tie"))
                         {
                             break;
