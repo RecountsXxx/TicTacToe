@@ -74,7 +74,6 @@ namespace GameServer
                     lobbyModels.Add(new LobbyModel(CounterID, username, client));
                 if (lobbyModels.Count >= 2)
                 {
-                    Console.WriteLine("Users finded");
                     Random rd = new Random();
                     int index = rd.Next(1, lobbyModels.Count);
                     Thread thread = new Thread(() => HandleClient(lobbyModels[0], lobbyModels[index],busyCells,CounterTie));
@@ -415,7 +414,6 @@ namespace GameServer
                         Thread.Sleep(1000);
                         userFirst.client.Close();
                         userSecond.client.Close();
-                        Console.WriteLine("Game Ended!");
                         busyCells = new List<string>();
                         CounterTie = 0;
                         GameIsEnded = false;
