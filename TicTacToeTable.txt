@@ -1,0 +1,10 @@
+create table Users(
+[Id] int primary key identity(1,1),
+[Username] nvarchar(25) not null check([Username] <> ''),
+[Password] nvarchar(25) not null check([Password] <> ''),
+[GameHistory] nvarchar(max) null,
+[Wins] int null,
+[Loses] int null,
+[Tie] int null,
+[PathAvatar] varbinary(max) null
+);
